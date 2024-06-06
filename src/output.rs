@@ -113,23 +113,36 @@ fn open_alias_file_with_suffix(suffix: &str) -> io::Result<File> {
 
 #[cfg(target_os = "windows")]
 pub fn create_edit_aliases(editor: &str, entries: &[FormattedEntry]) {
-    let powershell_alias = open_alias_file_with_suffix("ps1");
+    let powershell_alias = open_alias_file_with_suffix("psm1");
     if let Ok(mut alias_file) = powershell_alias {
         for (index, entry) in entries.iter().enumerate() {
-            let editor = if editor.is_empty() {
-                "Start-Process"
+            let result = if editor.is_empty() {
+                writeln!(
+                    &mut alias_file,
+                    "Function e{} {{ Start-Process \"{}\"}}",
+                    index, entry.path
+                )
             } else {
-                editor
+                writeln!(
+                    &mut alias_file,
+                    "Function e{} {{ {} $args \"{}\"}}",
+                    index, editor, entry.path
+                )
             };
-            let result = writeln!(
-                &mut alias_file,
-                "doskey /exename=pwsh.exe e{}={} {}\ndoskey /exename=powershell.exe e{}={} {}",
-                index, editor, entry.path, index, editor, entry.path,
-            );
-
-            if result.is_err() {
-                eprintln!("[tre] failed to write to alias file.");
+            if let Err(e) = result {
+                eprintln!("[tre] failed to write to PowerShell alias file due to:");
+                eprintln!("{e}");
+                return
             }
+        }
+        let result = writeln!(
+            &mut alias_file,
+            "Export-ModuleMember -Function *"
+        );
+        if let Err(e) = result {
+            eprintln!("[tre] failed to write to PowerShell alias file due to:");
+            eprintln!("{e}");
+            return
         }
     }
 
@@ -143,8 +156,10 @@ pub fn create_edit_aliases(editor: &str, entries: &[FormattedEntry]) {
                 index, editor, entry.path,
             );
 
-            if result.is_err() {
-                eprintln!("[tre] failed to write to alias file.");
+            if let Err(e) = result {
+                eprintln!("[tre] failed to write to CMD alias file due to:");
+                eprintln!("{e}");
+                return
             }
         }
     }
