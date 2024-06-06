@@ -20,6 +20,7 @@ pub struct RunOptions {
     pub editor: Option<Option<String>>,
     pub mode: Mode,
     pub directories_only: bool,
+    pub follow_links: bool,
     pub output_json: bool,
     pub root: String,
     pub max_depth: Option<usize>,
@@ -55,6 +56,7 @@ impl From<cli::Interface> for RunOptions {
             editor: inputs.editor,
             mode,
             directories_only: inputs.directories,
+            follow_links: inputs.follow_links,
             output_json: inputs.json,
             root: inputs.path,
             max_depth: inputs.limit,
@@ -74,13 +76,13 @@ pub fn run(option: RunOptions) {
     let max_depth = option.max_depth.unwrap_or(std::usize::MAX);
     let paths: Vec<(String, FileType)> = match option.mode {
         Mode::FollowGitIgnore => {
-            path_finders::find_non_git_ignored_paths(&option.root, directories_only, max_depth)
+            path_finders::find_non_git_ignored_paths(&option.root, directories_only, max_depth, option.follow_links)
         }
         Mode::ExcludeHiddenFiles => {
-            path_finders::find_non_hidden_paths(&option.root, directories_only, max_depth)
+            path_finders::find_non_hidden_paths(&option.root, directories_only, max_depth, option.follow_links)
         }
         Mode::ShowAllFiles => {
-            path_finders::find_all_paths(&option.root, directories_only, max_depth)
+            path_finders::find_all_paths(&option.root, directories_only, max_depth, option.follow_links)
         }
     };
 

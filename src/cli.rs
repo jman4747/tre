@@ -31,6 +31,10 @@ pub struct Interface {
     /// Only list directories in output.
     #[clap(long, short, parse(from_flag))]
     pub directories: bool,
+    /// Follow symlinks.
+    /// When yes is true, symbolic links are followed as if they were normal directories and files.
+    #[clap(long, short, parse(from_flag))]
+    pub follow_links: bool,
     /// Create aliases for each displayed result, and add a number in front of file name to
     /// indicate the alias name. For example, a number "42" means an shell alias "e42" has been
     /// created. Running "e42" will cause the associated file or directory to be open with $EDITOR

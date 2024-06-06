@@ -7,10 +7,12 @@ pub fn find_all_paths(
     root: &str,
     directories_only: bool,
     max_depth: usize,
+    follow_links: bool,
 ) -> Vec<(String, FileType)> {
     let mut result: Vec<(String, FileType)> = Vec::new();
     for entry in WalkDir::new(root)
         .max_depth(max_depth)
+        .follow_links(follow_links)
         .into_iter()
         .filter_map(|e| e.ok())
     {
@@ -46,8 +48,9 @@ pub fn find_non_hidden_paths(
     root: &str,
     directories_only: bool,
     max_depth: usize,
+    follow_links: bool,
 ) -> Vec<(String, FileType)> {
-    let walker = WalkDir::new(root).max_depth(max_depth).into_iter();
+    let walker = WalkDir::new(root).follow_links(follow_links).max_depth(max_depth).into_iter();
     let mut result: Vec<(String, FileType)> = Vec::new();
 
     for entry in walker
@@ -73,6 +76,7 @@ pub fn find_non_git_ignored_paths(
     root: &str,
     directories_only: bool,
     max_depth: usize,
+    follow_links: bool
 ) -> Vec<(String, FileType)> {
     let mut git_command = Command::new("git");
     if directories_only {
@@ -119,5 +123,5 @@ pub fn find_non_git_ignored_paths(
         }
     }
 
-    find_non_hidden_paths(root, directories_only, max_depth)
+    find_non_hidden_paths(root, directories_only, max_depth, follow_links)
 }
